@@ -5,9 +5,9 @@
 # Do not run scripat as a root user
 # Author: Subhash (serverkaka.com)
 
-# Check if not running as root
-if [ "$(id -u)" = "0" ]; then
-   echo "This script must be run as a non root user" 1>&2
+# Check if running as root
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root" 1>&2
    exit 1
 fi
 
@@ -20,6 +20,10 @@ else
      exit 1
 fi
 
+# Ask value for mysql root password 
+read -p 'db_root_password [secretpasswd]: ' db_root_password
+echo
+
 # Update system
 sudo apt-get update -y
 
@@ -30,6 +34,12 @@ sudo apt-get install zip unzip -y
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt-get update -y
 sudo apt-get install apache2 libapache2-mod-php7.2 php7.2 php7.2-xml php7.2-gd php7.2-opcache php7.2-mbstring -y
+
+# Install MySQL database server
+export DEBIAN_FRONTEND="noninteractive"
+debconf-set-selections <<< "mysql-server mysql-server/root_password password $db_root_password"
+debconf-set-selections <<< "mysql-server mysql-server/root_password_again password $db_root_password"
+apt-get install mysql-server -y
 
 # Installing Laravel
 cd /tmp
